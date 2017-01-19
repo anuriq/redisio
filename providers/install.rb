@@ -40,6 +40,7 @@ action :run do
       Chef::Log.info("Installing Redis #{new_resource.version} from source")
       download
       unpack
+      build_deps if node['platform'] == 'centos'
       build
       install
       new_resource.updated_by_last_action(true)
@@ -62,6 +63,10 @@ def unpack
   else
     raise Chef::Exceptions::UnsupportedAction, "Current package type #{new_resource.artifact_type} is unsupported"
   end
+end
+
+def build_deps
+  execute "cd #{new_resource.download_dir}/#{new_resource.base_name}#{new_resource.version}/deps && make hiredis jemalloc linenoise lua geohash-int"
 end
 
 def build
